@@ -1,41 +1,84 @@
 # PTTAutoSign
-PTT 自動簽到，最近老人在用的 PTT 終於又重新開放註冊了，我也嘗試當個老人。 \
-![kachow 2021-08-21 at 13 36 12@2x](https://user-images.githubusercontent.com/11913223/130311745-97ccf57e-6c67-423e-b4a6-d74908dd9df9.png)
 
-✅ 不需要額外伺服器 \
-🚀 即時發送通知到 Telegam \
-👷‍♂️ 不需額外維護 
+![PTT](https://user-images.githubusercontent.com/11913223/130311745-97ccf57e-6c67-423e-b4a6-d74908dd9df9.png)
 
-1. 首先右上角 Star 給他按下去，接著 `fork` 一份。哪天如果被我海巡到會被我單方面的 Block。
-2. 接著打開 [Layerci](https://layerci.com) 用一個舒服的方式登入或註冊。
-3. 點一下 `New Installation`，並點一下 `Install on GitHub` \
-![1.png](https://user-images.githubusercontent.com/11913223/127747923-542a75be-89ee-4905-b87d-b4f0d88a30ef.png)
-4. 點左邊的 `Secrets` 設定環境參數，不知道 `chat_id` 嗎？請參考下方 FAQ。
+PTT 自動簽到，使用 GitHub Actions 每天自動登入 PTT 並發送 Telegram 通知。
+
+## ✨ 特色
+
+- ✅ 不需要額外伺服器
+- 🚀 即時發送通知到 Telegram
+- 👷‍♂️ 不需額外維護
+- 🆓 完全免費（使用 GitHub Actions）
+
+## 📋 部署步驟
+
+### 1. Fork 此專案
+
+點擊右上角的 **Fork** 按鈕，將此專案複製到你的 GitHub 帳號。
+
+### 2. 設定 GitHub Secrets
+
+前往你的 repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+新增以下 Secrets：
+
+| Secret 名稱 | 說明 | 範例 |
+|------------|------|------|
+| `BOT_TOKEN` | Telegram Bot Token | `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz` |
+| `CHAT_ID` | Telegram Chat ID | `123456789` |
+| `PTT_ID_1` | PTT 帳號（格式：帳號,密碼） | `myaccount,mypassword` |
+| `PTT_ID_2` | 第二個 PTT 帳號（若無則填 `none`） | `none` |
+
+### 3. 啟用 GitHub Actions
+
+1. 前往你的 repo → **Actions**
+2. 點擊 **I understand my workflows, go ahead and enable them**
+3. 找到 **PTT 自動簽到** workflow
+4. 點擊 **Enable workflow**
+
+### 4. 手動測試
+
+在 Actions 頁面，點擊 **PTT 自動簽到** → **Run workflow** → **Run workflow** 進行測試。
+
+## ⏰ 排程時間
+
+預設每天 **台灣時間 10:30** 自動執行。
+
+如需更改時間，編輯 `.github/workflows/ptt_auto_sign.yml` 中的 cron 設定：
+
+```yaml
+schedule:
+  - cron: "30 2 * * *"  # UTC 時間，+8 = 台灣時間
 ```
-bot_token  -> telegram bot token
-chat_id    -> telegram chat id
-ptt_id_1   -> ptt 帳號 (username,passwd)
 
-** 如果沒有第二個帳號要登入請一樣新增 ptt_id_2 但在輸入帳號與密碼的地方輸入 none **
-ptt_id_2   -> ptt 帳號 (username,passwd)
+## ❓ FAQ
+
+### Q: 如何取得 Telegram Bot Token？
+
+1. 在 Telegram 搜尋 [@BotFather](https://t.me/BotFather)
+2. 發送 `/newbot` 建立新機器人
+3. 依照指示設定機器人名稱
+4. 取得 Token，格式如：`1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`
+
+### Q: 如何取得 Chat ID？
+
+- **個人 Chat ID**：私訊 [@my_id_bot](https://t.me/my_id_bot)
+- **頻道 Chat ID**：在頻道發送訊息，轉發給 @my_id_bot
+- **群組 Chat ID**：將 @my_id_bot 加入群組
+
+### Q: 支援多個 PTT 帳號嗎？
+
+支援！在 `main.py` 中可以新增更多帳號：
+
+```python
+ptt_id_3 = os.getenv("ptt_id_3")
+ptt_id_4 = os.getenv("ptt_id_4")
+# ... 以此類推
 ```
-5. 在左側 `Settings` 中找到 `Organization` 將 `Live API Key` 複製起來 \
-  ![2.png](https://user-images.githubusercontent.com/11913223/127748093-56b0f233-ec35-4279-a847-6586e022f86a.png)
-6. 新增至 GitHub Secret 中取名為 `LAYERCI`
-  ![3.png](https://user-images.githubusercontent.com/11913223/127748085-187f2d4c-bc55-4d00-904b-79c15943f3e5.png)
-7. 最後點自己 `Repo` 的 `Action`，找到左側 `Daily Trigger` 打開 workflow。 \
-  ![image](https://user-images.githubusercontent.com/11913223/127421102-ada99cea-f20b-43ca-8899-8ba65b4b733b.png)
-8. 自動同步更新原始碼，請點[這裡](https://github.com/apps/pull)，並點一下綠色的 Install，如果安裝過請點 `Configure`。 
-   ![image](https://user-images.githubusercontent.com/11913223/127421412-7b146eab-4b12-4aea-b95a-656a49c73df2.png)
-9. Enjoy 🎉
 
+並在 GitHub Secrets 中新增對應的 `PTT_ID_3`、`PTT_ID_4` 等。
 
-## FAQ
-Q: 我怎麼找到我的 `bot_token` \
-A: 先去找 @Botfather 申請一個，之後會拿到一個 `token` 像是 `1234567:abcdefghijklmnopqrstuwxyz` 
+## 📝 License
 
-Q: 我要怎麼知道 `chat_id`？頻道或群組支援嗎？ \
-A: 拆開講。 \
-如果你要拿自己的 `chat_id` 直接私訊 @my_id_bot \
-如果你要拿頻道的 `chat_id` 開好一個頻道，在頻道裡面隨便打一段字，接著將那串文字轉傳給 @my_id_bot \
-如果你要拿群組的 `chat_id` 直接把 @my_id_bot 加進群組
+MIT License

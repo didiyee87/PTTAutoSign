@@ -1,0 +1,33 @@
+name: PTT 自動簽到
+
+on:
+  workflow_dispatch:  # 手動觸發
+  schedule:
+    # 每天 UTC 02:30 (台灣時間 10:30) 執行
+    - cron: "30 2 * * *"
+
+jobs:
+  ptt-sign:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run PTT Auto Sign
+        env:
+          bot_token: ${{ secrets.BOT_TOKEN }}
+          chat_id: ${{ secrets.CHAT_ID }}
+          ptt_id_1: ${{ secrets.PTT_ID_1 }}
+          ptt_id_2: ${{ secrets.PTT_ID_2 }}
+        run: python main.py
