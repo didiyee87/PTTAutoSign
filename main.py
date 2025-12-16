@@ -36,26 +36,64 @@ for i in range(2, 6):
     if pttid_ and pttid_ != "none":
         ptt_account.append(pttid_)
 
-ptt = PTT.API(log_level=PTT.log.INFO)
 tg = Bot(BOT_TOKEN, CHAT_ID)
 
 
+def create_ptt_connection():
+    """嘗試不同連線模式"""
+    # 嘗試 Telnet 模式
+    try:
+        print("嘗試 Telnet 連線模式...")
+        ptt = PTT.API(connect_mode=PTT.ConnectMode.TELNET, log_level=PTT.log.INFO)
+        return ptt
+    except Exception as e:
+        print(f"Telnet 連線失敗: {e}")
+    
+    # 嘗試 WebSocket 模式
+    try:
+        print("嘗試 WebSocket 連線模式...")
+        ptt = PTT.API(connect_mode=PTT.ConnectMode.WEBSOCKET, log_level=PTT.log.INFO)
+        return ptt
+    except Exception as e:
+        print(f"WebSocket 連線失敗: {e}")
+    
+    return None
+
+
 def daily_login(ptt_id: str, ptt_passwd: str):
+    ptt = create_ptt_connection()
+    
+    if ptt is None:
+        tg.send_message("❌ PTT 連線失敗！\n無法連接到 PTT 伺服器（可能 IP 被封鎖）")
+        return
+    
     try:
         ptt.login(ptt_id, ptt_passwd, kick_other_session=True)
+    except PTT_exceptions.ConnectError:
+        tg.send_message("❌ PTT 連線失敗！\nGitHub Actions IP 可能被 PTT 封鎖")
+        return
     except PTT_exceptions.NoSuchUser:
         tg.send_message("PTT 登入失敗！\n找不到使用者")
+        return
     except (PTT_exceptions.WrongIDorPassword, PTT_exceptions.WrongPassword):
         tg.send_message("PTT 登入失敗！\n帳號密碼錯誤")
+        return
     except PTT_exceptions.LoginTooOften:
         tg.send_message("PTT 登入失敗！\n登入太頻繁")
+        return
     except PTT_exceptions.UseTooManyResources:
         tg.send_message(
             "PTT 登入失敗！\n使用過多 PTT 資源，請稍等一段時間並增加操作之間的時間間隔"
         )
+        return
     except PTT_exceptions.UnregisteredUser:
         tg.send_message(f"{ptt_id} 未註冊使用者")
-    else:
+        return
+    except Exception as e:
+        tg.send_message(f"❌ PTT 連線錯誤！\n{str(e)[:100]}")
+        return
+
+    try:
         user = ptt.get_user(ptt_id)
         text = f"✅ PTT {ptt_id} 已成功簽到\n"
         text += f"📆 已登入 {user.get('login_count')} 天\n"
@@ -66,9 +104,12 @@ def daily_login(ptt_id: str, ptt_passwd: str):
 
         tg.send_message(text)
         ptt.logout()
+    except Exception as e:
+        tg.send_message(f"⚠️ PTT 登入成功但獲取資料失敗\n{str(e)[:100]}")
 
 
 if __name__ == "__main__":
     for pttid in ptt_account:
         ptt_id, ptt_passwd = pttid.split(",")
         daily_login(ptt_id, ptt_passwd)
+
